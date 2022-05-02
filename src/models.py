@@ -23,9 +23,9 @@ class User(db.Model):
 class Favoritos(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    personaje_id = db.Column(db.Integer, db.ForeignKey('personajes.id'))
-    planeta_id = db.Column(db.Integer, db.ForeignKey('planetas.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    personaje_id = db.Column(db.Integer, db.ForeignKey('personajes.id'), nullable=True)
+    planeta_id = db.Column(db.Integer, db.ForeignKey('planetas.id'), nullable=True)
 
 
     def __repr__(self):
