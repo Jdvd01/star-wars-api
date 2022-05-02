@@ -1,6 +1,6 @@
 .env
 .venv
-.env.example
+.venv.example
 database.database
 database.db
 diagram.png
