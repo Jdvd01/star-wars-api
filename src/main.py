@@ -388,17 +388,230 @@ def handle_planetas(planeta_id = None):
             return jsonify(error.args)
 
 
-
-############################################
-##### Prueba mientras se hace el login #####
-############################################ 
+##################################
+##### Favoritos de cada User #####
+##################################
 @app.route('/user/favoritos', methods = ['GET'])
 @jwt_required()
 def handle_get_favoritos():
 
-    prueba = get_jwt_identity()
-    print(prueba)
-    return "prueba"
+    user_id = get_jwt_identity()
+    favoritos = Favoritos.query.filter_by( user_id = user_id ).all()
+
+    favoritos_serialize = [favorito.serialize() for favorito in favoritos]
+
+    # la linea 401 es la manera resumida de hacer esto:
+    # favoritos_serialize = []
+    # for favorito in favoritos:
+    #     favoritos_serialize.append(favorito.serialize())
+  
+    return jsonify(favoritos_serialize)
+
+###############################
+# Planetas favoritos del User #
+###############################
+@app.route('/user/favoritos/planetas', methods = ['GET', 'POST'])
+@app.route('/user/favoritos/planetas/<int:planeta_id>', methods = ['GET', 'PUT', 'DELETE'])
+@jwt_required()
+def handle_planetas_favoritos( planeta_id = None ):
+
+    #######################################
+    # Identity reutilizable en la funcion #
+    #######################################
+    user_id = get_jwt_identity()
+
+    #################################################
+    # METODO GET DE LOS PLANETAS FAVORITOS POR USER #
+    #################################################
+    if request.method == 'GET':
+
+        if planeta_id is None:
+            favoritos = Favoritos.query.filter_by( user_id = user_id ).all()
+            planetas_favoritos = []
+            
+            for favorito in favoritos:
+                if favorito.planeta_id is not None:
+                    planetas_favoritos.append(favorito.serialize())
+
+            if not planetas_favoritos:
+                return jsonify({
+                    "msg": "No tiene Planetas favoritos"
+                }), 404
+            else:
+                return jsonify(planetas_favoritos), 200
+
+        if planeta_id is not None:
+
+            planeta = Favoritos.query.filter_by(user_id = user_id, planeta_id = planeta_id).first()
+
+            if planeta is not None:
+                return jsonify(planeta.serialize()), 200
+            else:
+                return jsonify({
+                    "msg": "Planeta no encontrado"
+                }), 404
+
+    ##################################################
+    # METODO POST DE LOS PLANETAS FAVORITOS POR USER #
+    ##################################################
+    if request.method == 'POST':
+        body = request.json
+
+        planeta = Favoritos(planeta_id=body["planeta_id"], user_id=user_id)
+        try:
+            db.session.add(planeta)
+            db.session.commit()
+            return jsonify(planeta.serialize()), 201
+
+        except Exception as error:
+            db.session.rollback()
+            return jsonify(error.args), 500
+
+    #################################################
+    # METODO PUT DE LOS PLANETAS FAVORITOS POR USER #
+    #################################################
+    if request.method == 'PUT':
+        body = request.json
+
+        planeta_update = Favoritos.query.filter_by(planeta_id = planeta_id, user_id=user_id).first()
+
+        if planeta_update is None:
+            return jsonify({
+                "msg": "Algo está mal, intenta de nuevo"
+            }), 400
+        try:
+            planeta_update.personaje_id = body["personaje_id"]
+            planeta_update.planeta_id = body["planeta_id"]
+            db.session.commit()
+            return jsonify(planeta_update.serialize()), 202
+        except Exception as error:
+            db.session.rollback()
+            return jsonify(error.args)
+
+    ####################################################
+    # METODO DELETE DE LOS PLANETAS FAVORITOS POR USER #
+    ####################################################
+    if request.method == 'DELETE':
+        
+        planeta_delete = Favoritos.query.filter_by(user_id = user_id, planeta_id = planeta_id).first()
+
+        if planeta_delete is None:
+            return jsonify({
+                "msg": "Personaje no encontrado, intenta de nuevo"
+            }), 404
+        
+        db.session.delete(planeta_delete)
+
+        try:
+            db.session.commit()
+            return jsonify([]), 204
+        except Exception as error:
+            db.session.rollback()
+            return jsonify(error.args)
+
+#################################
+# Personajes favoritos del User #
+#################################
+@app.route('/user/favoritos/personajes', methods = ['GET', 'POST'])
+@app.route('/user/favoritos/personajes/<int:personaje_id>', methods = ['GET', 'PUT', 'DELETE'])
+@jwt_required()
+def handle_personajes_favoritos( personaje_id = None):
+
+    #######################################
+    # Identity reutilizable en la funcion #
+    #######################################
+    user_id = get_jwt_identity()
+
+    ###################################################
+    # METODO GET DE LOS PERSONAJES FAVORITOS POR USER #
+    ###################################################
+    if request.method == 'GET':
+        if personaje_id is None:
+            favoritos = Favoritos.query.filter_by( user_id = user_id ).all()
+
+            personajes_favoritos = []
+
+            for favorito in favoritos:
+                if favorito.personaje_id is not None:
+                    personajes_favoritos.append(favorito.serialize())
+
+            if not personajes_favoritos:
+                return jsonify({
+                    "msg": "No tiene Personajes favoritos"
+                }), 404
+            else:
+                return jsonify(personajes_favoritos), 200
+
+        if personaje_id is not None:
+
+            personaje = Favoritos.query.filter_by(user_id = user_id, personaje_id = personaje_id).first()
+
+            if personaje is not None:
+                return jsonify(personaje.serialize()), 200
+            else:
+                return jsonify({
+                    "msg": "Personaje no encontrado"
+                }), 404
+    
+
+    ####################################################
+    # METODO POST DE LOS PERSONAJES FAVORITOS POR USER #
+    ####################################################
+    if request.method == 'POST':
+        body = request.json
+
+        personaje = Favoritos(personaje_id=body["personaje_id"], user_id=user_id)
+        try:
+            db.session.add(personaje)
+            db.session.commit()
+            return jsonify(personaje.serialize()), 201
+
+        except Exception as error:
+            db.session.rollback()
+            return jsonify(error.args), 500
+
+
+    ###################################################
+    # METODO PUT DE LOS PERSONAJES FAVORITOS POR USER #
+    ###################################################
+    if request.method == 'PUT':
+        body = request.json
+
+        personaje_update = Favoritos.query.filter_by(personaje_id = personaje_id, user_id=user_id).first()
+
+        if personaje_update is None:
+            return jsonify({
+                "msg": "Algo está mal, intenta de nuevo"
+            }), 400
+        try:
+            personaje_update.personaje_id = body["personaje_id"]
+            db.session.commit()
+            return jsonify(personaje_update.serialize()), 202
+        except Exception as error:
+            db.session.rollback()
+            return jsonify(error.args)
+
+    ######################################################
+    # METODO DELETE DE LOS PERSONAJES FAVORITOS POR USER #
+    ######################################################
+    if request.method == 'DELETE':
+        
+        personaje_delete = Favoritos.query.filter_by(user_id = user_id, personaje_id = personaje_id).first()
+
+        if personaje_delete is None:
+            return jsonify({
+                "msg": "Personaje no encontrado, intenta de nuevo"
+            }), 404
+        
+        db.session.delete(personaje_delete)
+
+        try:
+            db.session.commit()
+            return jsonify([]), 204
+        except Exception as error:
+            db.session.rollback()
+            return jsonify(error.args)
+
 
 #############
 ### login ###

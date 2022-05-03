@@ -43,7 +43,7 @@ class Personajes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     nombre = db.Column(db.String(30), unique=True, nullable=False)
-    genero = db.Column(db.String(20))
+    genero = db.Column(db.String(20), nullable=False)
     edad = db.Column(db.Float, nullable=False)
     favorito = db.relationship('Favoritos', backref='personajes', uselist=True)
 
@@ -69,8 +69,7 @@ class Planetas(db.Model):
     poblacion = db.Column(db.Float, nullable=False)
     favorito = db.relationship('Favoritos', backref='planetas', uselist=True)
     
-
-
+    
     def __repr__(self):
         return f"Id de Planeta: {self.id}"
 
