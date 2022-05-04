@@ -7,10 +7,10 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
 
-    favoritos = db.relationship('Favoritos', backref='user', uselist=True)
+    favorites = db.relationship('Favorites', backref='user', uselist=True)
 
     def __repr__(self):
-        return f"User: {self.email}"
+        return f"<User: {self.email}>"
 
     def serialize(self):
         return {
@@ -20,64 +20,79 @@ class User(db.Model):
         }
 
 
-class Favoritos(db.Model):
+class Favorites(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    personaje_id = db.Column(db.Integer, db.ForeignKey('personajes.id'), nullable=True)
-    planeta_id = db.Column(db.Integer, db.ForeignKey('planetas.id'), nullable=True)
-
+    planet_id = db.Column(db.Integer, db.ForeignKey('planets.id'))
+    people_id = db.Column(db.Integer, db.ForeignKey('people.id'))
+    
 
     def __repr__(self):
-        return f"<Favoritos object {self.id}>"
+        return f"<Favorites object {self.id}>"
 
     def serialize(self):
         return {
-            "user_id": self.user_id,
-            "personaje_id": self.personaje_id,
-            "planeta_id": self.planeta_id
+            "planet_id": self.planet_id,
+            'people_id': self.people_id
         }
 
 
-class Personajes(db.Model):
+class People(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    nombre = db.Column(db.String(30), unique=True, nullable=False)
-    genero = db.Column(db.String(20), nullable=False)
-    edad = db.Column(db.Float, nullable=False)
-    favorito = db.relationship('Favoritos', backref='personajes', uselist=True)
+    name = db.Column(db.String(30), nullable=False)
+    height = db.Column(db.Integer, nullable=False)
+    mass = db.Column(db.Integer, nullable=False)
+    hair_color = db.Column(db.String(20), nullable=False)
+    skin_color = db.Column(db.String(20), nullable=False)
+    eye_color = db.Column(db.String(20), nullable=False)
+    birth_year = db.Column(db.String(30), nullable=False)
+    gender = db.Column(db.String(20), nullable=False)
+    favorites = db.relationship('Favorites', backref='people', uselist=True)
 
 
     def __repr__(self):
-        return f"Id de Personaje: {self.id} "
+        return f"<People id: {self.id}>"
 
     def serialize(self):
         return {
             "id": self.id,
-            "nombre": self.nombre,
-            "genero": self.genero,
-            "edad": self.edad
+            "name": self.name,
+            "height": self.height,
+            "mass": self.mass,
+            "hair_color": self.hair_color,
+            "skin_color": self.skin_color,
+            "eye_color": self.eye_color,
+            "birth_year": self.birth_year,
+            "gender": self.gender
         }
 
 
-class Planetas(db.Model):
+class Planets(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    nombre = db.Column(db.String(40), unique=True, nullable=False)
-    clima = db.Column(db.String(20), nullable=False)
-    terreno = db.Column(db.String(20), nullable=False)
-    poblacion = db.Column(db.Float, nullable=False)
-    favorito = db.relationship('Favoritos', backref='planetas', uselist=True)
-    
+    name = db.Column(db.String(40), unique=True, nullable=False)
+    diameter = db.Column(db.Integer, nullable=False)
+    climate = db.Column(db.String(20), nullable=False)
+    gravity = db.Column(db.String(30), nullable=False)
+    terrain = db.Column(db.String(20), nullable=False)
+    surface_water = db.Column(db.Integer, nullable=False)
+    population = db.Column(db.Float, nullable=False)
+    favorites = db.relationship('Favorites', backref='planets', uselist=True)
+
     
     def __repr__(self):
-        return f"Id de Planeta: {self.id}"
+        return f"<Planet id: {self.id}>"
 
     def serialize(self):
         return {
             "id": self.id,
-            "nombre": self.nombre,
-            "clima": self.clima,
-            "terreno": self.terreno,
-            "poblacion": self.poblacion
+            "name": self.name,
+            "diameter": self.diameter,
+            "climate": self.climate,
+            "gravity": self.gravity,
+            "terrain": self.terrain,
+            "surface_water": self.surface_water,
+            "population": self.population
         }
