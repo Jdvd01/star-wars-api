@@ -2,6 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import requests
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -47,12 +48,31 @@ def handle_population_planets():
     for result in response['results']:
         detail = requests.get(result['url'])
         detail = detail.json()
-        result_planets.append(detail['result']['properties'])
+        result_planets.append(detail)
 
     instances = []
 
-    for planet in result_planetas:
+    for planet in result_planets:
         instance = Planets.create(planet)
+        instances.append(instance)
+
+    return jsonify(list(map( lambda inst: inst.serialize(), instances))), 200
+
+@app.route('/population/people', methods = ['POST'])
+def handle_population_people():
+    response = requests.get(f'{URL_BASE}/people/?page=1&limit=20')
+    response = response.json()
+    result_people = []
+
+    for result in response['results']:
+        detail = requests.get(result['url'])
+        detail = detail.json()
+        result_people.append(detail)
+
+    instances = []
+
+    for character in result_people:
+        instance = People.create(character)
         instances.append(instance)
 
     return jsonify(list(map( lambda inst: inst.serialize(), instances))), 200
