@@ -258,14 +258,15 @@ def handle_people(character_id = None):
                 "msg": "Something is wrong, try again"
             }), 400
         try:
-            character_update.name = body["name"],
-            character_update.height = body["height"], 
-            character_update.mass = body["mass"],
-            character_update.hair_color = body["hair_color"],
-            character_update.skin_color = body["skin_color"], 
-            character_update.eye_color = body["eye_color"],
-            character_update.birth_year = body["birth_year"],
-            character_update.gender = body["gender"]
+            character_update.name = body.get("name")
+            character_update.height = body.get("height")
+            character_update.mass = body.get("mass")
+            character_update.hair_color = body.get("hair_color")
+            character_update.skin_color = body.get("skin_color")
+            character_update.eye_color = body.get("eye_color")
+            character_update.birth_year = body.get("birth_year")
+            character_update.gender = body.get("gender")
+            db.session.commit()
             return jsonify(character_update.serialize()), 202
         except Exception as error:
             db.session.rollback()
@@ -370,13 +371,14 @@ def handle_planetas(planet_id = None):
                 "msg": "Something is wrong, try again"
             }), 400
         try:
-            planet_update.name = body["name"],
-            planet_update.diameter = body["diameter"], 
-            planet_update.climate = body["climate"],
-            planet_update.gravity = body["gravity"],
-            planet_update.terrain = body["terrain"], 
-            planet_update.surface_water = body["surface_water"],
+            planet_update.name = body["name"]
+            planet_update.diameter = body["diameter"]
+            planet_update.climate = body["climate"]
+            planet_update.gravity = body["gravity"]
+            planet_update.terrain = body["terrain"]
+            planet_update.surface_water = body["surface_water"]
             planet_update.population = body["population"]
+            db.session.commit()
             return jsonify(planet_update.serialize()), 202
         except Exception as error:
             db.session.rollback()
@@ -422,9 +424,9 @@ def handle_get_favorites():
     favorites_serialize = [favorito.serialize() for favorito in favorites]
 
     # la linea 401 es la manera resumida de hacer esto:
-    # favoritos_serialize = []
-    # for favorito in favoritos:
-    #     favoritos_serialize.append(favorito.serialize())
+    # favorites_serialize = []
+    # for favorite in favorites:
+    #     favorites_serialize.append(favorite.serialize())
   
     return jsonify(favorites_serialize)
 
@@ -451,7 +453,7 @@ def handle_planets_favorites( planet_id = None ):
             favorite_planets = []
             
             for favorite in favorites:
-                if favorite.planet_id is not None:
+                if favorite.nature_id is not None and favorite.nature == 'Planet':
                     favorite_planets.append(favorite.serialize())
 
             if not favorite_planets:
@@ -463,7 +465,7 @@ def handle_planets_favorites( planet_id = None ):
 
         if planet_id is not None:
 
-            planet = Favorites.query.filter_by(user_id = user_id, planet_id = planet_id).first()
+            planet = Favorites.query.filter_by(user_id = user_id, nature_id = planet_id, nature='Planet').first()
 
             if planet is not None:
                 return jsonify(planet.serialize()), 200
@@ -478,7 +480,12 @@ def handle_planets_favorites( planet_id = None ):
     if request.method == 'POST':
         body = request.json
 
-        planet = Favorites(planet_id=body["planet_id"], user_id=user_id)
+        planet = Favorites(
+            name=body["name"],
+            nature = "Planet",
+            nature_id = body["nature_id"],
+            user_id=user_id
+            )
         try:
             db.session.add(planet)
             db.session.commit()
@@ -494,15 +501,14 @@ def handle_planets_favorites( planet_id = None ):
     if request.method == 'PUT':
         body = request.json
 
-        planet_update = Favorites.query.filter_by(planet_id = planet_id, user_id=user_id).first()
+        planet_update = Favorites.query.filter_by(nature_id = planet_id, user_id=user_id, nature='Planet').first()
 
         if planet_update is None:
             return jsonify({
                 "msg": "Something is wrong, try again"
             }), 400
         try:
-            planet_update.people_id = body["people_id"]
-            planet_update.planet_id = body["planet_id"]
+            planet_update.name = body["name"]
             db.session.commit()
             return jsonify(planet_update.serialize()), 202
         except Exception as error:
@@ -514,7 +520,7 @@ def handle_planets_favorites( planet_id = None ):
     ####################################################
     if request.method == 'DELETE':
         
-        planet_delete = Favorites.query.filter_by(user_id = user_id, planet_id = planet_id).first()
+        planet_delete = Favorites.query.filter_by(user_id = user_id, nature_id = planet_id, nature='Planet').first()
 
         if planet_delete is None:
             return jsonify({
@@ -554,7 +560,7 @@ def handle_personajes_favoritos( character_id = None):
             favorite_characters = []
 
             for favorite in favorites:
-                if favorite.people_id is not None:
+                if favorite.nature_id is not None and favorite.nature == 'People':
                     favorite_characters.append(favorite.serialize())
 
             if not favorite_characters:
@@ -566,7 +572,7 @@ def handle_personajes_favoritos( character_id = None):
 
         if character_id is not None:
 
-            character = Favorites.query.filter_by(user_id = user_id, character_id = character_id).first()
+            character = Favorites.query.filter_by(user_id = user_id, nature_id = character_id, nature='People').first()
 
             if character is not None:
                 return jsonify(character.serialize()), 200
@@ -582,7 +588,12 @@ def handle_personajes_favoritos( character_id = None):
     if request.method == 'POST':
         body = request.json
 
-        character = Favorites(people_id=body["people_id"], user_id=user_id)
+        character = Favorites(
+            name = body["name"],
+            nature = 'People',
+            nature_id = body["nature_id"],
+            user_id=user_id
+            )
         try:
             db.session.add(character)
             db.session.commit()
@@ -599,14 +610,14 @@ def handle_personajes_favoritos( character_id = None):
     if request.method == 'PUT':
         body = request.json
 
-        character_update = Favorites.query.filter_by(people_id = character_id, user_id=user_id).first()
+        character_update = Favorites.query.filter_by(nature_id = character_id, user_id=user_id, nature='People').first()
 
         if character_update is None:
             return jsonify({
                 "msg": "Something is wrong, try again"
             }), 400
         try:
-            character_update.people_id = body["people_id"]
+            character_update.name = body["name"]
             db.session.commit()
             return jsonify(character_update.serialize()), 202
         except Exception as error:
@@ -618,7 +629,7 @@ def handle_personajes_favoritos( character_id = None):
     ######################################################
     if request.method == 'DELETE':
         
-        character_delete = Favorites.query.filter_by(user_id = user_id, people_id = character_id).first()
+        character_delete = Favorites.query.filter_by(user_id = user_id, nature_id = character_id, nature='People').first()
 
         if character_delete is None:
             return jsonify({
