@@ -185,7 +185,6 @@ def handle_user(user_id = None):
 #########################
 @app.route('/people', methods=['GET', 'POST'])
 @app.route('/people/<int:character_id>', methods=['GET', 'PUT', 'DELETE'])
-@jwt_required()
 def handle_people(character_id = None):
 
     ########################################
@@ -300,7 +299,6 @@ def handle_people(character_id = None):
 #######################
 @app.route('/planets', methods=['GET', 'POST'])
 @app.route('/planets/<int:planet_id>', methods=['GET', 'PUT', 'DELETE'])
-@jwt_required()
 def handle_planetas(planet_id = None):
 
     ##########################################
@@ -674,6 +672,26 @@ def handle_login():
         return jsonify({
             "msg": "Something is wrong, try again"
         }), 400
+
+
+@app.route('/register', methods = ['POST'])
+def handle_register():
+    body = request.json
+
+    if not body.get("email") or not body.get("password"):
+        return jsonify({
+            "msg": "Something is wrong, try again"
+        }), 400
+
+    user = User(email=body["email"], password=body["password"])
+    try:
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(user.serialize()), 201
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify(error.args), 500
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
