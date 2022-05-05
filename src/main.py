@@ -39,6 +39,7 @@ def sitemap():
 ####################
 URL_BASE = "https://swapi.dev/api"
 
+
 @app.route('/population/planets', methods = ['POST'])
 def handle_population_planets():
     response = requests.get(f'{URL_BASE}/planets/?page=1&limit=20')
